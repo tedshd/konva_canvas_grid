@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>canvas grid Examples</title>
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0">
+  <script src="https://unpkg.com/konva@4.1.3/konva.min.js"></script>
+</head>
+
+<body>
+  <header>
+    <input id="left" type="file" accept="image/*" value="select left photo">
+    <input id="right" type="file" accept="image/*" value="select right photo">
+    <button id="save">download</button>
+  </header>
+  <div id="container"></div>
+</body>
+<script>
+var w = 720,
+  h = 480;
+
+document.querySelector('#left').addEventListener('change', function() {
+  var file = this.files;
+  if (!file.length) {
+    console.log('no select image');
+  } else {
+    console.log(file[0]);
+    initImage({
+      path: window.URL.createObjectURL(file[0]),
+      x: 0,
+      y: 0,
+      w: w,
+      h: h,
+      layer: layerLeft,
+    });
+  }
+});
+
+document.querySelector('#right').addEventListener('change', function() {
+  var file = this.files;
+  if (!file.length) {
+    console.log('no select image');
+  } else {
+    console.log(file[0]);
+    initImage({
+      path: window.URL.createObjectURL(file[0]),
+      x: 360,
+      y: 0,
+      w: w,
+      h: h,
+      layer: layerRight,
+    });
+  }
+});
+
+document.getElementById('save').addEventListener(
+  'click',
+  function() {
+    downloadURI();
+  },
+  false
+);
+
+var stage = new Konva.Stage({
+  container: 'container',
+  width: w,
+  height: h
+});
+
+var layerLeft = initLayer(0, 0, w / 2, h);
+var layerRight = initLayer(w / 2, 0, w / 2, h);
+var layersArray = [];
+
+initLineAsBorder(layerLeft, [0, 0, 360, 0, 360, 480, 0, 480, 0, 0], '#ddd');
+initLineAsBorder(layerRight, [360, 0, 720, 0, 720, 480, 360, 480, 360, 0], '#ddd');
+
+layerLeft.draw();
+layerRight.draw();
+
+layersArray.push(layerLeft);
+layersArray.push(layerRight);
+
+stage.on('click tap', function(e) {
+  var target = e.target;
+  console.log('initTransformer');
+  currentTarget = target;
+  if (target === stage || !target.hasName('images')) {
+    destroyTransformer(layersArray);
+    return;
+  }
+  initTransformer(target, layersArray);
+});
+
+stage.on('mouseup touchend', function(e) {
+  console.log('move');
+  console.log(e.target);
+  if (stage.find('Transformer').length && currentTarget.hasName('images')) {
+    initTransformer(currentTarget, layersArray);
+  }
+});
+
+window.addEventListener('click', function (e) {
+  if (e.target.nodeName !== 'CANVAS' && stage.find('Transformer').length) {
+    console.log('destroy');
+    destroyTransformer(layersArray);
+  }
+});
+
+// End
+
+function destroyTransformer(layers) {
+  stage.find('Transformer').destroy();
+  for (var i = 0; i < layers.length; i++) {
+    layers[i].draw();
+  }
+}
+
+function initTransformer(target, layers) {
+  stage.find('Transformer').destroy();
+
+  for (var j = 0; j < layers.length; j++) {
+    // create new transformer
+    var tr = new Konva.Transformer();
+    layers[j].add(tr);
+    tr.attachTo(target);
+    layers[j].draw();
+  }
+}
+
+function initLineAsBorder(layer, pathArray, strokeColor, strokeWidth) {
+  var line = new Konva.Line({
+    points: pathArray,
+    stroke: strokeColor || '#000',
+    strokeWidth: strokeWidth || 10,
+  });
+  layer.add(line);
+  line.zIndex(1);
+}
+
+function initLayer(x, y, w, h) {
+  var layer = new Konva.Layer({
+    clipX: x,
+    clipY: y,
+    clipWidth: w,
+    clipHeight: h
+  });
+  stage.add(layer);
+  layer.zIndex(0);
+  return layer;
+}
+
+function initImage(arg) {
+  var path = arg.path,
+    x = arg.x || 0,
+    y = arg.y || 0,
+    w = arg.w,
+    h = arg.h,
+    layer = arg.layer;
+
+  if (path == undefined) {
+    console.error('initLayer: not set path');
+    return;
+  }
+  if (x == undefined) {
+    console.error('initLayer: not set x');
+    return;
+  }
+  if (y == undefined) {
+    console.error('initLayer: not set y');
+    return;
+  }
+  if (w == undefined) {
+    console.error('initLayer: not set w');
+    return;
+  }
+  if (h == undefined) {
+    console.error('initLayer: not set h');
+    return;
+  }
+  if (layer == undefined) {
+    console.error('initLayer: not set layer');
+    return;
+  }
+
+  var imageObj = new Image();
+
+  imageObj.src = path;
+
+  imageObj.onload = function() {
+    var draggable = true;
+    var img = new Konva.Image({
+      x: x,
+      y: y,
+      image: imageObj,
+      width: imageObj.width,
+      height: imageObj.height,
+      name: 'images',
+      draggable: draggable
+    });
+    if (draggable) {
+      img.on('mouseenter', function() {
+        document.body.style.cursor = 'grab';
+      });
+      img.on('mouseleave', function() {
+        document.body.style.cursor = 'default';
+      });
+    }
+    layer.add(img);
+    img.zIndex(0);
+
+    layer.batchDraw();
+  };
+}
+
+function initLineAsBorder(layer, pathArray, strokeColor, strokeWidth) {
+  var line = new Konva.Line({
+    points: pathArray,
+    stroke: strokeColor || '#000',
+    strokeWidth: strokeWidth || 10,
+  });
+  layer.add(line);
+  line.zIndex(99);
+}
+
+function downloadURI(uri, name) {
+  var fileName = 'grid_' + new Date() + '.png';
+  var dataURL = stage.toDataURL({ pixelRatio: 1 });
+
+  dataURL = dataURL.replace(/^data:image\/[^;]*/, 'data:application/octet-stream');
+  dataURL = dataURL.replace(/^data:application\/octet-stream/, 'data:application/octet-stream;headers=Content-Disposition%3A%20attachment%3B%20filename=' + fileName);
+
+  var link = document.createElement('a');
+  link.download = fileName;
+  link.href = dataURL;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  delete link;
+}
+</script>
+
+</html>
