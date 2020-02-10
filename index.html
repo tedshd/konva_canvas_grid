@@ -83,18 +83,16 @@ layersArray.push(layerRight);
 
 stage.on('click tap', function(e) {
   var target = e.target;
-  console.log('initTransformer');
   currentTarget = target;
-  if (target === stage || !target.hasName('images')) {
+  if (!currentTarget.hasName('images')) {
     destroyTransformer(layersArray);
     return;
   }
-  initTransformer(target, layersArray);
+  initTransformer(currentTarget, layersArray);
+  initController(currentTarget);
 });
 
 stage.on('mouseup touchend', function(e) {
-  console.log('move');
-  console.log(e.target);
   if (stage.find('Transformer').length && currentTarget.hasName('images')) {
     initTransformer(currentTarget, layersArray);
   }
@@ -102,12 +100,23 @@ stage.on('mouseup touchend', function(e) {
 
 window.addEventListener('click', function (e) {
   if (e.target.nodeName !== 'CANVAS' && stage.find('Transformer').length) {
-    console.log('destroy');
     destroyTransformer(layersArray);
   }
 });
 
 // End
+
+function initController(target) {
+  // var div = document.createElement('div');
+  // div.setAttribute('style', 'position:absolute;right:0;top:0;border:solid 2px #bf0000;color:#bf0000;');
+  // div.innerText = 'Delete';
+  // div.addEventListener('click', function () {
+  //   destroyTransformer(layersArray);
+  //   target.destroy();
+  //   stage.draw();
+  // });
+  // document.body.append(div);
+}
 
 function destroyTransformer(layers) {
   stage.find('Transformer').destroy();
@@ -220,7 +229,7 @@ function initLineAsBorder(layer, pathArray, strokeColor, strokeWidth) {
     strokeWidth: strokeWidth || 10,
   });
   layer.add(line);
-  line.zIndex(99);
+  line.zIndex(0);
 }
 
 function downloadURI(uri, name) {
