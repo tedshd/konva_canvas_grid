@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>Examples</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+<style>
+  .controller {
+    position: absolute;
+    padding: 1rem;
+    box-sizing: border-box;
+    background: #ccc;
+  }
+  .controller_top {
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+  .controller_right {
+    top: 0;
+    right: 0;
+    height: 100%;
+  }
+  .controller_bottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+  .controller_left {
+    top: 0;
+    left: 0;
+    height: 100%;
+  }
+  .controller_top li,
+  .controller_bottom li {
+
+    display: inline-block;
+  }
+
+  .controller li {
+    padding: .5rem;
+  }
+</style>
+
+</head>
+<body>
+
+</body>
+<script>
+  initController({
+    'dom': document.body,
+    'position': 'right',
+    'menu': [
+      {
+        'function': 'do',
+        'name':'do',
+      },
+      {
+        'function': 'undo',
+        'name':'undo',
+      },
+      {
+        'function': 'text',
+        'name':'添加文字',
+      },
+      {
+        'function': 'image',
+        'name':'添加圖片',
+      },
+      {
+        'function': 'shape',
+        'name':'形狀',
+      },
+      {
+        'function': 'delete',
+        'name':'刪除',
+      },
+      {
+        'function': 'reflection',
+        'name':'鏡射',
+      },
+      {
+        'function': 'opacity',
+        'name':'透明度',
+      },
+      {
+        'function': 'brightness',
+        'name':'亮度',
+      },
+      {
+        'function': 'grid',
+        'name':'拼接',
+      },
+      {
+        'function': 'crop',
+        'name':'剪裁',
+      },
+      {
+        'function': 'filter',
+        'name':'濾鏡',
+      },
+      {
+        'function': 'paint',
+        'name':'畫筆'
+      }
+    ]
+  });
+
+  function initController(arg) {
+    var section = document.createElement('section');
+    section.classList.add('controller');
+    section.classList.add('controller_' + arg.position);
+    var ul = document.createElement('ul');
+    for (var i = 0; i < arg.menu.length; i++) {
+      var li = document.createElement('li');
+      li.innerText = arg.menu[i]['name'];
+      li.addEventListener('click', function () {
+        console.log(this.innerText);
+      });
+      ul.append(li);
+    }
+    section.append(ul);
+    arg.dom.append(section);
+  }
+</script>
+</html>
