@@ -34,7 +34,6 @@
   }
   .controller_top li,
   .controller_bottom li {
-
     display: inline-block;
   }
 
@@ -50,7 +49,7 @@
 <script>
   initController({
     'dom': document.body,
-    'position': 'right',
+    'position': 'bottom',
     'menu': [
       {
         'function': 'do',
@@ -71,7 +70,7 @@
       {
         'function': 'paint',
         'name':'畫筆'
-      }
+      },
       {
         'function': 'shape',
         'name':'形狀',
@@ -115,7 +114,8 @@
     for (var i = 0; i < arg.menu.length; i++) {
       var li = document.createElement('li');
       li.innerText = arg.menu[i]['name'];
-      li.addEventListener('click', function () {
+      li.addEventListener('click', function (e) {
+        e.stopPropagation();
         console.log(this.innerText);
       });
       ul.append(li);
