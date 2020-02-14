@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <title>canvas grid Examples</title>
+        <meta id="viewport" name="viewport"
+            content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0">
+        <script src="https://unpkg.com/konva@4.1.3/konva.min.js"></script>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+
+        <link rel="stylesheet" href="./initController.css">
+        <script src="./function.js"></script>
+        <script src="./initControllerEditor.js"></script>
+        <script src="./initControllerSize.js"></script>
+        <script src="./transformer.js"></script>
+        <script src="./initImage.js"></script>
+    </head>
+
+    <body>
+        <div id="container"></div>
+    </body>
+    <script>
+        var w = window.document.documentElement.clientWidth,
+            h = window.document.documentElement.clientHeight,
+            canvasW = 720,
+            canvasH = 480,
+            objectZindex = 0,
+            currentTarget = false,
+            layerArray = [];
+        window.addEventListener('resize', function () {
+            w = window.document.documentElement.clientWidth,
+                h = window.document.documentElement.clientHeight;
+            stage.width(w);
+            stage.height(h);
+            stageLayer.width(w);
+            stageLayer.height(h);
+            stageLayer.x((w / 2) - (canvasW / 2));
+            stageLayer.y((h / 2) - (canvasH / 2));
+            stageLayer.batchDraw();
+            canvasLayer.x((w / 2) - (canvasW / 2));
+            canvasLayer.y((h / 2) - (canvasH / 2));
+            if (currentTarget.nodeName !== 'CANVAS' &&
+                stage.find('Transformer').length) {
+                if (!controllerEditorDom(currentTarget) || !controllerSizeDom(currentTarget)) {
+                    destroyTransformer(layerArray);
+                }
+            }
+        });
+        var stage = new Konva.Stage({
+            container: 'container',
+            x: 0,
+            y: 0,
+            width: w,
+            height: h,
+            draggable: true,
+        });
+
+        var stageLayer = new Konva.Layer({
+            clipX: 0,
+            clipY: 0,
+            width: w,
+            height: h,
+            name: 'stagelayer',
+            x: (w / 2) - (canvasW / 2),
+            y: (h / 2) - (canvasH / 2),
+        });
+        stage.add(stageLayer);
+        stageLayer.zIndex(0);
+        stageLayer.draw();
+        layerArray.push(stageLayer);
+
+        var canvasLayer = new Konva.Layer({
+            clipX: 0,
+            clipY: 0,
+            clipWidth: canvasW,
+            clipHeight: canvasH,
+            name: 'canvaslayer',
+            x: (w / 2) - (canvasW / 2),
+            y: (h / 2) - (canvasH / 2),
+        });
+        stage.add(canvasLayer);
+        canvasLayer.zIndex(0);
+        canvasLayer.draw();
+        layerArray.push(canvasLayer);
+
+        var bg = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width: canvasW,
+            height: canvasH,
+            fill: '#aaa',
+            strokeWidth: 0
+        });
+        canvasLayer.add(bg);
+        canvasLayer.draw();
+        bg.zIndex(0);
+
+        initControllerEditor({
+            'dom': document.body,
+            'position': 'top',
+            'menu': [
+                {
+                    'feature': 'do',
+                    'name': 'do',
+                    'status': false,
+                },
+                {
+                    'feature': 'undo',
+                    'name': 'undo',
+                    'status': false,
+                },
+                {
+                    'feature': 'text',
+                    'name': '添加文字',
+                    'status': false,
+                },
+                {
+                    'feature': 'image',
+                    'name': '添加圖片',
+                    'status': true,
+                },
+                {
+                    'feature': 'paint',
+                    'name': '畫筆',
+                    'status': false,
+                },
+                {
+                    'feature': 'shape',
+                    'name': '形狀',
+                    'status': false,
+                },
+                {
+                    'feature': 'delete',
+                    'name': '刪除',
+                    'status': true,
+                },
+                {
+                    'feature': 'reflection',
+                    'name': '鏡射',
+                    'status': false,
+                },
+                {
+                    'feature': 'opacity',
+                    'name': '透明度',
+                    'status': true,
+                },
+                {
+                    'feature': 'brightness',
+                    'name': '亮度',
+                    'status': true,
+                },
+                {
+                    'feature': 'contrast',
+                    'name': '對比',
+                    'status': true,
+                },
+                {
+                    'feature': 'blur',
+                    'name': '模糊',
+                    'status': true,
+                },
+                {
+                    'feature': 'crop',
+                    'name': '剪裁',
+                    'status': false,
+                },
+                {
+                    'feature': 'filter',
+                    'name': '濾鏡',
+                    'status': false,
+                },
+                {
+                    'feature': 'grid',
+                    'name': '拼接',
+                    'status': false,
+                },
+            ]
+        });
+
+        initControllerSize({
+            'dom': document.body,
+            'position': 'bottom',
+            'menu': [
+                {
+                    'feature': 'scale',
+                    'name': '物件縮放',
+                    'status': true,
+                },
+                {
+                    'feature': 'zoom',
+                    'name': '縮放',
+                    'status': true,
+                },
+                {
+                    'feature': 'size',
+                    'name': '大小',
+                    'status': true,
+                },
+                {
+                    'feature': 'download',
+                    'name': '下載',
+                    'status': true,
+                }
+            ]
+        });
+
+        // Event
+        if (stage.draggable()) {
+            stage.on('dragstart', function () {
+                document.body.style.cursor = 'grab';
+            });
+            stage.on('dragend', function () {
+                document.body.style.cursor = 'default';
+            });
+        }
+
+        stage.on('click tap', function (e) {
+            // TODO handle image or object transformer
+            var target = e.target;
+            currentTarget = target;
+            console.log('currentTarget: ', currentTarget);
+            if (!currentTarget.hasName('images')) {
+                destroyTransformer(layerArray);
+                return;
+            }
+            initTransformer(currentTarget, layerArray);
+            // initController(currentTarget);
+        });
+
+        stage.on('mouseup touchend', function (e) {
+            console.log('mouseup currentTarget:', currentTarget);
+            console.log('mouseup e.target:', e.target);
+            if (currentTarget && currentTarget.hasName('images') && stage.find('Transformer').length) {
+                initTransformer(currentTarget, layerArray);
+            }
+        });
+
+        window.addEventListener('click', function (e) {
+            console.log('window click:', e.target);
+            if (e.target.nodeName !== 'CANVAS' &&
+                stage.find('Transformer').length) {
+                if (!controllerEditorDom(e.target) || !controllerSizeDom(e.target)) {
+                    destroyTransformer(layerArray);
+                }
+            }
+            if (!controllerEditorDom(e.target)) {
+                console.log('controllerEditorDom');
+                destoryControllerSub('editor');
+            }
+            if (!controllerSizeDom(e.target)) {
+                console.log('controllerSizeDom');
+                destoryControllerSub('size');
+            }
+        });
+    </script>
+
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <title>canvas grid Examples</title>
+        <meta id="viewport" name="viewport"
+            content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0">
+        <script src="https://unpkg.com/konva@4.1.3/konva.min.js"></script>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+
+        <link rel="stylesheet" href="./initController.css">
+        <script src="./function.js"></script>
+        <script src="./initControllerEditor.js"></script>
+        <script src="./initControllerSize.js"></script>
+        <script src="./transformer.js"></script>
+        <script src="./initImage.js"></script>
+
+        <style>
+            header {
+                background: #777;
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <input id="left" type="file" accept="image/*" value="select left photo">
+            <input id="right" type="file" accept="image/*" value="select right photo">
+        </header>
+        <section id="controller_container"></section>
+        <div id="container"></div>
+    </body>
+    <script>
+        var w = 720,
+            h = 480;
+
+        document.querySelector('#left').addEventListener('change', function () {
+            var file = this.files;
+            if (!file.length) {
+                console.log('no select image');
+            } else {
+                console.log(file[0]);
+                initImage({
+                    path: window.URL.createObjectURL(file[0]),
+                    x: 0,
+                    y: 0,
+                    w: w,
+                    h: h,
+                    layer: layerLeft,
+                });
+            }
+        });
+
+        document.querySelector('#right').addEventListener('change', function () {
+            var file = this.files;
+            if (!file.length) {
+                console.log('no select image');
+            } else {
+                console.log(file[0]);
+                initImage({
+                    path: window.URL.createObjectURL(file[0]),
+                    x: 360,
+                    y: 0,
+                    w: w,
+                    h: h,
+                    layer: layerRight,
+                });
+            }
+        });
+
+        var stage = new Konva.Stage({
+            container: 'container',
+            x: 0,
+            y: 0,
+            width: w,
+            height: h,
+            draggable: false,
+        });
+
+        var layerLeft = initLayer({
+            x: 0,
+            y: 0,
+            w: w / 2,
+            h: h,
+            name: 'layerLeft'
+        });
+        var layerRight = initLayer({
+            x: w / 2,
+            y: 0,
+            w: w / 2,
+            h: h,
+            name: 'layerRight'
+        });
+        var layersArray = [];
+        var currentTarget = false;
+
+        initControllerSize({
+            'dom': document.body,
+            'position': 'bottom',
+            'menu': [
+                {
+                    'feature': 'scale',
+                    'name': '縮放',
+                    'status': true,
+                },
+                {
+                    'feature': 'size',
+                    'name': '大小',
+                    'status': true,
+                },
+                {
+                    'feature': 'download',
+                    'name': '下載',
+                    'status': true,
+                }
+            ]
+        });
+        initControllerEditor({
+            'dom': document.querySelector('#controller_container'),
+            'position': 'top',
+            'menu': [
+                {
+                    'feature': 'do',
+                    'name': 'do',
+                    'status': false,
+                },
+                {
+                    'feature': 'undo',
+                    'name': 'undo',
+                    'status': false,
+                },
+                {
+                    'feature': 'text',
+                    'name': '添加文字',
+                    'status': true,
+                },
+                {
+                    'feature': 'image',
+                    'name': '添加圖片',
+                    'status': false,
+                },
+                {
+                    'feature': 'paint',
+                    'name': '畫筆',
+                    'status': false,
+                },
+                {
+                    'feature': 'shape',
+                    'name': '形狀',
+                    'status': false,
+                },
+                {
+                    'feature': 'delete',
+                    'name': '刪除',
+                    'status': true,
+                },
+                {
+                    'feature': 'reflection',
+                    'name': '鏡射',
+                    'status': false,
+                },
+                {
+                    'feature': 'opacity',
+                    'name': '透明度',
+                    'status': true,
+                },
+                {
+                    'feature': 'brightness',
+                    'name': '亮度',
+                    'status': true,
+                },
+                {
+                    'feature': 'contrast',
+                    'name': '對比',
+                    'status': true,
+                },
+                {
+                    'feature': 'blur',
+                    'name': '模糊',
+                    'status': true,
+                },
+                {
+                    'feature': 'crop',
+                    'name': '剪裁',
+                    'status': false,
+                },
+                {
+                    'feature': 'filter',
+                    'name': '濾鏡',
+                    'status': false,
+                },
+                {
+                    'feature': 'grid',
+                    'name': '拼接',
+                    'status': false,
+                },
+            ]
+        });
+
+        initLineAsBorder(layerLeft, [0, 0, 360, 0, 360, 480, 0, 480, 0, 0], '#ddd');
+        initLineAsBorder(layerRight, [360, 0, 720, 0, 720, 480, 360, 480, 360, 0], '#ddd');
+
+        layerLeft.draw();
+        layerRight.draw();
+
+        layersArray.push(layerLeft);
+        layersArray.push(layerRight);
+
+        stage.on('click tap', function (e) {
+            // TODO handle image or object transformer
+            var target = e.target;
+            currentTarget = target;
+            console.log('currentTarget: ', currentTarget);
+            if (!currentTarget.hasName('images')) {
+                destroyTransformer(layersArray);
+                return;
+            }
+            initTransformer(currentTarget, layersArray);
+            // initController(currentTarget);
+        });
+
+        stage.on('dragstart', function () {
+            document.body.style.cursor = 'grab';
+        });
+        stage.on('dragend', function () {
+            document.body.style.cursor = 'default';
+        });
+
+        stage.on('mouseup touchend', function (e) {
+            if (stage.find('Transformer').length && currentTarget.hasName('images')) {
+                initTransformer(currentTarget, layersArray);
+            }
+        });
+
+        window.addEventListener('click', function (e) {
+            console.log('window click:', e.target);
+            if (e.target.nodeName !== 'CANVAS' &&
+                stage.find('Transformer').length) {
+                if (!controllerEditorDom(e.target) || !controllerSizeDom(e.target)) {
+                    destroyTransformer(layersArray);
+                }
+            }
+            if (!controllerEditorDom(e.target)) {
+                destoryControllerSub('editor');
+            }
+            if (!controllerSizeDom(e.target)) {
+                destoryControllerSub('size');
+            }
+        });
+
+        // var rect = new Konva.Rect({
+        //   width: w,
+        //   height: h,
+        //   fill: 'red',
+        //   stroke: 'black',
+        //   strokeWidth: 0
+        // });
+
+        // var layer = new Konva.Layer({
+        //     clipX: 0,
+        //     clipY: 0,
+        //     width: w,
+        //     height: h
+        // });
+
+        // layer.add(rect);
+        // stage.add(layer);
+        // layer.zIndex(0);
+        // layer.draw();
+
+        // var path = new Konva.Path({
+        //     x: 0,
+        //     y: 0,
+        //     data: 'M12.582,9.551C3.251,16.237,0.921,29.021,7.08,38.564l-2.36,1.689l4.893,2.262l4.893,2.262l-0.568-5.36l-0.567-5.359l-2.365,1.694c-4.657-7.375-2.83-17.185,4.352-22.33c7.451-5.338,17.817-3.625,23.156,3.824c5.337,7.449,3.625,17.813-3.821,23.152l2.857,3.988c9.617-6.893,11.827-20.277,4.935-29.896C35.591,4.87,22.204,2.658,12.582,9.551z',
+        //     // data: 'm78.52929,135.27807c20.31974,41.47249 24.28666,54.06711 17.56822,55.77751c-13.12401,3.34122 -10.48672,22.45013 7.88253,57.11402c23.03701,43.47234 68.15946,70.16831 110.54335,65.40122c16.45098,-1.85033 35.04954,-5.66894 41.33013,-8.48593c6.28056,-2.81702 2.42656,2.43077 -8.56446,11.66168c-54.9834,46.17824 -122.89033,42.96155 -177.06531,-8.38736c-21.60058,-20.47385 -51.31962,-80.29273 -51.31962,-103.29694c0,-6.51694 -4.89965,-12.83159 -10.88809,-14.03249c-9.79341,-1.96395 -8.4782,-7.13508 13.08154,-51.43391c13.18331,-27.08777 25.59322,-51.1935 27.57759,-53.56827c1.98441,-2.37478 15.41875,19.78791 29.85413,49.25046l-0.00001,0.00001zm174.66564,79.95386c-20.31975,-41.47248 -24.28666,-54.06715 -17.56826,-55.77751c13.12401,-3.34116 10.48673,-22.45012 -7.8825,-57.11402c-23.03702,-43.47235 -68.15952,-70.16833 -110.54338,-65.40125c-16.45098,1.8503 -35.0495,5.66898 -41.33009,8.48598c-6.28059,2.81696 -2.42659,-2.43081 8.56443,-11.66171c54.98341,-46.17827 122.89034,-42.96159 177.06532,8.38739c21.60059,20.47378 51.31961,80.29271 51.31961,103.29687c0,6.51698 4.89969,12.83159 10.88807,14.03249c9.79345,1.96398 8.47821,7.13508 -13.08149,51.43393c-13.1833,27.08773 -25.59324,51.19347 -27.57759,53.56827c-1.98442,2.37478 -15.41875,-19.78789 -29.85413,-49.25044l0,-0.00001z',
+        //     fill: 'green',
+        //     scaleX: 2,
+        //     scaleY: 2
+        // });
+
+        // layer.add(path);
+        // stage.add(layer);
+        // layer.zIndex(0);
+        // layer.draw();
+
+        // End
+
+
+
+        function initLayer(arg) {
+            var layer = new Konva.Layer({
+                clipX: arg.x,
+                clipY: arg.y,
+                clipWidth: arg.w,
+                clipHeight: arg.h,
+                name: arg.name,
+                // clipFunc: function (ctx) {
+                //     ctx.arc(arg.x + 50, 120, 50, 0, Math.PI * 2, false);
+                //     ctx.arc(arg.x + 100, 120, 60, 0, Math.PI * 2, false);
+                //     // ctx.rect(0, 0, 100, 100);
+                //     // ctx.path('M12.582,9.551C3.251,16.237,0.921,29.021,7.08,38.564l-2.36,1.689l4.893,2.262l4.893,2.262l-0.568-5.36l-0.567-5.359l-2.365,1.694c-4.657-7.375-2.83-17.185,4.352-22.33c7.451-5.338,17.817-3.625,23.156,3.824c5.337,7.449,3.625,17.813-3.821,23.152l2.857,3.988c9.617-6.893,11.827-20.277,4.935-29.896C35.591,4.87,22.204,2.658,12.582,9.551z');
+                // }
+            });
+            // var bg = new Konva.Rect({
+            //     x: 0,
+            //     y: 0,
+            //     width: w,
+            //     height: h,
+            //     fill: '#aaa',
+            //     strokeWidth: 0
+            // });
+            // layer.add(bg);
+            // bg.zIndex(0);
+            layer.zIndex(0);
+            stage.add(layer);
+            return layer;
+        }
+
+
+
+        function initLineAsBorder(layer, pathArray, strokeColor, strokeWidth) {
+            var line = new Konva.Line({
+                points: pathArray,
+                stroke: strokeColor || '#000',
+                strokeWidth: strokeWidth || 10,
+            });
+            layer.add(line);
+            line.zIndex(0);
+        }
+
+    </script>
+
+</html>

@@ -1,37 +1,40 @@
-#controller {
-  position: absolute;
+.controller {
   padding: 1rem;
   box-sizing: border-box;
   background: #ccc;
 }
 
-#controller li {
+.controller li {
   padding: .5rem;
 }
 
-#controller li:hover {
+.controller li:hover {
   cursor: pointer;
 }
 
 .controller_top {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
 }
 
 .controller_right {
+  position: absolute;
   top: 0;
   right: 0;
   height: 100%;
 }
 
 .controller_bottom {
+  position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
 }
 
 .controller_left {
+  position: absolute;
   top: 0;
   left: 0;
   height: 100%;
@@ -42,7 +45,7 @@
   display: inline-block;
 }
 
-#controller_sub {
+.controller_sub {
   position: relative;
   padding-bottom: 1rem;
   box-sizing: border-box;
@@ -50,7 +53,7 @@
   text-align: center;
 }
 
-.controller_bottom #controller_sub:after {
+.controller_bottom .controller_sub:after {
   content: '';
   position: absolute;
   width: 100%;
